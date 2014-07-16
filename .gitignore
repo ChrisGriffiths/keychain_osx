@@ -34,4 +34,4 @@ build/
 .rvmrc
 
 #OSX Files
-.DS-Store
+.DS_Store
