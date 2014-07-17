@@ -1,18 +1,20 @@
+require 'fileutils'
+
 module OSX
 
     class ProvisioningProfile
         attr_reader :path, :name, :uuid, :identifiers, :devices, :appstore
-        
+
         def initialize(path)
-          
+
               raise "Provisioning profile '#{path}' does not exist" unless File.exists? path
-              
+
               @path = path
               @identifiers = []
               @devices = []
               @appstore = true
               @enterprise = false
-                            
+
               uuid = nil
               find_profile_uuid(path)
         end
@@ -38,7 +40,7 @@ module OSX
 
                 input=~/<key>UUID<\/key>.*?<string>(.*?)<\/string>/im
                 @uuid = $1.strip
-                      
+
                 input=~/<key>Name<\/key>.*?<string>(.*?)<\/string>/im
                 @name = $1.strip
 
@@ -59,7 +61,7 @@ module OSX
         end
 
         def self.profiles_path
-            File.expand_path "~/Library/MobileDevice/Provisioning\\ Profiles/"  
+            File.expand_path "~/Library/MobileDevice/Provisioning\ Profiles/"
         end
 
         def install_path
@@ -76,8 +78,8 @@ module OSX
                 end
             end
 
-            command = "cp #{self.path} #{self.install_path}"
-            OSX::Command::run(command)
+            FileUtils.mkdir_p(File.dirname(self.install_path))
+            FileUtils.cp(self.path, self.install_path)
         end
 
         def uninstall
