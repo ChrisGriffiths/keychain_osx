@@ -31,6 +31,7 @@ module OSX
 
         def set_default
             command = "security default-keychain -s #{@keychain_path}"
+            OSX::Command::run(command)
         end
 
         def self.temp(&block)
