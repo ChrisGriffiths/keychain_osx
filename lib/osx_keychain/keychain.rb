@@ -39,7 +39,7 @@ module OSX
 
             if block_given? # block is given
                 begin
-                    yield
+                    yield(kc)
                 ensure
                     kc.delete
                 end
