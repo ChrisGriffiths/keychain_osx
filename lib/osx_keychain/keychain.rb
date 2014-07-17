@@ -11,6 +11,7 @@ module OSX
             @keychain_path = keychain_path
             create(key_password)
             unlock(key_password)
+            add_to_search_path
         end 
 
         def unlock(password)
@@ -28,9 +29,21 @@ module OSX
             OSX::Command::run(command)
         end
         
-
         def set_default
             command = "security default-keychain -s #{@keychain_path}"
+            OSX::Command::run(command)
+        end
+
+        def add_to_search_path
+            keychains = []
+
+            `security list-keychain`.split.map do |keychain| 
+                keychains << keychain.strip.gsub(/\"/,'')
+            end
+
+            keychains << @keychain_path
+
+            command = "security list-keychain -s #{keychains.join(' ')}"
             OSX::Command::run(command)
         end
 
