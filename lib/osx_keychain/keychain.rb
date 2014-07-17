@@ -1,51 +1,60 @@
-KEYCHAIN_LOCATION = "/tmp/temp_keychain.keychain"
+KEYCHAIN_LOCATION = "/tmp/temp_keychain#{Time.now.to_i}.keychain"
+TEMP_PASSWORD = "keychain_password"
 
-class Keychain
+module OSX
+        
+    class Keychain
 
-    def initialize(key_password)
-        create(key_password)
-        unlock
-        set_default
-    end 
+        attr_accessor :keychain_path
 
-    def unlock 
-        command = "security default-keychain -s #{KEYCHAIN_LOCATION}"
-        Command::run(command)
-    end
+        def initialize(keychain_path, key_password)
+            @keychain_path = keychain_path
+            create(key_password)
+            unlock(key_password)
+        end 
 
-     def import(cert, password)
-        command = "security import '#{cert}' -k \"#{KEYCHAIN_LOCATION}\" -P #{password} -T /usr/bin/codesign"
-        Command::run(command)
-    end
+        def unlock(password)
+            command = "security unlock-keychain -p #{password} \"#{@keychain_path}\""
+            OSX::Command::run(command)
+        end
 
-    def delete
-        command  = "security delete-keychain #{KEYCHAIN_LOCATION}"
-        Command::run(command)
-    end
-    
-private
-    def create(key_password)
-        command  = "security create-keychain -p #{key_password} \"#{KEYCHAIN_LOCATION}\""
-        Command::run(command)
-    end
+        def import(cert, password)
+            command = "security import '#{cert}' -k \"#{@keychain_path}\" -P #{password} -T /usr/bin/codesign"
+            OSX::Command::run(command)
+        end
 
-    def set_default
-        command = "security default-keychain -s #{KEYCHAIN_LOCATION}"
+        def delete
+            command  = "security delete-keychain #{@keychain_path}"
+            OSX::Command::run(command)
+        end
+        
+
+        def set_default
+            command = "security default-keychain -s #{@keychain_path}"
+        end
+
+        def self.temp(&block)
+            kc = OSX::Keychain.new(KEYCHAIN_LOCATION, TEMP_PASSWORD)
+            kc.unlock(TEMP_PASSWORD)
+
+            if block_given? # block is given
+                begin
+                    yield
+                ensure
+                    kc.delete
+                end
+            else 
+                kc.delete
+            end
+        end
+
+        private
+        def create(key_password, timeout = 600)
+            command  = "security create-keychain -p #{key_password} \"#{@keychain_path}\""
+            OSX::Command::run(command)
+
+            command  = "security set-keychain-settings -u \"#{@keychain_path}\""
+            OSX::Command::run(command)
+        end
     end
 end
-
-# Create keychain 
-# Set default  
-# Unlock 
-# Import keys/certs 
-# Run stuff 
-# Delete keychain 
- 
-# #!/bin/sh 
-# security create-keychain -p travis ios-build.keychain 
-# security import ./scripts/certs/apple.cer -k ~/Library/Keychains/ios-build.keychain -T /usr/bin/codesign 
-# security import ./scripts/certs/dist.cer -k ~/Library/Keychains/ios-build.keychain -T /usr/bin/codesign 
-# security import ./scripts/certs/dist.p12 -k ~/Library/Keychains/ios-build.keychain -P $KEY_PASSWORD -T /usr/bin/codesign 
-# security default-keychain -s ios-build.keychain 
-# mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles 
-# cp "./scripts/profile/$PROFILE_NAME.mobileprovision" ~/Library/MobileDevice
