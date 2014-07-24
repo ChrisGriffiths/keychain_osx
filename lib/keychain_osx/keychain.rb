@@ -2,7 +2,7 @@ KEYCHAIN_LOCATION = "/tmp/temp_keychain#{Time.now.to_i}.keychain"
 TEMP_PASSWORD = "keychain_password"
 
 module OSX
-        
+
     class Keychain
 
         attr_accessor :keychain_path
@@ -12,7 +12,7 @@ module OSX
             create(key_password)
             unlock(key_password)
             add_to_search_path
-        end 
+        end
 
         def unlock(password)
             command = "security unlock-keychain -p #{password} \"#{@keychain_path}\""
@@ -28,7 +28,7 @@ module OSX
             command  = "security delete-keychain #{@keychain_path}"
             OSX::Command::run(command)
         end
-        
+
         def set_default
             command = "security default-keychain -s #{@keychain_path}"
             OSX::Command::run(command)
@@ -37,11 +37,11 @@ module OSX
         def add_to_search_path
             keychains = []
 
-            `security list-keychain`.split.map do |keychain| 
+            `security list-keychain`.split.map do |keychain|
                 keychains << keychain.strip.gsub(/\"/,'')
             end
 
-            keychains << @keychain_path
+            keychains.insert(0, @keychain_path)
 
             command = "security list-keychain -s #{keychains.join(' ')}"
             OSX::Command::run(command)
@@ -57,7 +57,7 @@ module OSX
                 ensure
                     kc.delete
                 end
-            else 
+            else
                 kc.delete
             end
         end
