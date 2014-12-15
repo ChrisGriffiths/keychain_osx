@@ -1,7 +1,7 @@
-osx_keychain
+keychain_osx
 ============
 
-osx_keychain is a gem to help make like easier when working with the keychain.
+keychain_osx is a gem to help make like easier when working with the keychain.
 When your working with CI or multiple developor it can be difficult to manage keys. 
 This gem Allwo you to create a temporay keychain where the new certificates can be imported.
 
@@ -9,12 +9,13 @@ This gem Allwo you to create a temporay keychain where the new certificates can 
 Creates a Temporay keychain that is deleted after the block has completed
 
 ```
-require 'osx_keychain'
+require 'keychain_osx'
         
 OSX::Keychain.temp do |keychain|
 
     keychain.import('PrivateKey.p12','password')
-   	run_some_stuff(things)
+    OSX::ProvisioningProfile.new('ROVISONING_PROFILE').install
+    run_some_stuff(things)
 
 end
 ```
