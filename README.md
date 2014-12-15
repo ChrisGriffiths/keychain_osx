@@ -1,5 +1,10 @@
 keychain_osx
 ============
+###How to install
+
+  ```$ gem install keychain_osx```
+  
+###How to use
 
 keychain_osx is a gem to help make like easier when working with the keychain.
 When your working with CI or multiple developor it can be difficult to manage keys. 
